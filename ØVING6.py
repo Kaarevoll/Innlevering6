@@ -1,82 +1,104 @@
 import pandas as pd
+import matplotlib.pyplot as plt
+from datetime import datetime
 
-path_to_file = "temperatur_trykk_met_samme_rune_time_datasett.csv.txt"
-temperatur = pd.read_csv(path_to_file)
-path_to_file = "trykk_og_temperaturlogg_rune_time.csv.txt"
-trykk = pd.read_csv(path_to_file)
+# Overordnet oppgavebeskrivelse: Lesing av to separate .csv-filer med værdata for temperaturanalyse.
+# En fil fra UiS og en fil fra Sola værstasjon.
+
+# Les inn data fra Sola værstasjon
+df_sola = pd.read_csv("temperatur_trykk_met_samme_rune_time_datasett.csv.txt", sep=";", skipinitialspace=True)
+
+# Konverterer tidspunktene i Sola data til datetime-format (DD.MM.YYYY HH:MM)
+df_sola['Tid(norsk normaltid)'] = pd.to_datetime(df_sola['Tid(norsk normaltid)'], format='%d.%m.%Y %H:%M', errors='coerce')
+
+# Konverterer temperatur til numerisk format
+df_sola['Lufttemperatur'] = pd.to_numeric(df_sola['Lufttemperatur'].str.replace(',', '.'), errors='coerce')
+
+# Les inn data fra lokal værstasjon (professor Rune Wiggo Time)
+df_local = pd.read_csv("trykk_og_temperaturlogg_rune_time.csv.txt", sep=";", skipinitialspace=True)
+
+# Konverterer tidspunktene i lokal data til datetime-format (MM.DD.YYYY HH:MM)
+df_local['Dato og tid'] = pd.to_datetime(df_local['Dato og tid'], format='%m.%d.%Y %H:%M', errors='coerce')
+
+# Fjerner ugyldige datoer
+df_local = df_local.dropna(subset=['Dato og tid'])
+
+# Legger til sekunder siden start for nøyaktig tidsberegning
+df_local['Tid siden start (sek)'] = pd.to_numeric(df_local['Tid siden start (sek)'], errors='coerce')
+df_local['Dato og tid'] = df_local['Dato og tid'] + pd.to_timedelta(df_local['Tid siden start (sek)'], unit='s')
+
+# Konverterer temperatur til numerisk format
+df_local['Temperatur (gr Celsius)'] = pd.to_numeric(df_local['Temperatur (gr Celsius)'].str.replace(',', '.'), errors='coerce')
+
+# Plotter temperaturdata
+plt.figure(figsize=(10, 6))
+
+# Temperatur fra Sola
+plt.plot(df_sola['Tid(norsk normaltid)'], df_sola['Lufttemperatur'], label='Sola Lufttemperatur', color='blue')
+
+# Temperatur fra lokal værstasjon
+plt.plot(df_local['Dato og tid'], df_local['Temperatur (gr Celsius)'], label='Lokal Lufttemperatur', color='orange')
+
+# Legger til tittel, akseetiketter og legend
+plt.title('Temperatur over tid')
+plt.xlabel('Tidspunkt')
+plt.ylabel('Temperatur (°C)')
+plt.legend()
+
+# Viser temperaturplottet
+plt.tight_layout()
+plt.show()
 
 
-
-
-#""""""""""""""""
-
+######### Vise trykk over tid
 
 import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
 
-# Load the temperature and pressure datasets (adjust the file paths as necessary)
-df_temp_met = pd.read_csv("temperatur_trykk_met_samme_rune_time_datasett.csv.txt", sep=";", skipinitialspace=True)
-df_trykk_temp = pd.read_csv("trykk_og_temperaturlogg_rune_time.csv.txt", sep=";", skipinitialspace=True)
+# Overordnet oppgavebeskrivelse: Lesing av to separate .csv-filer med værdata for trykkanalyse.
+# En fil fra UiS og en fil fra Sola værstasjon.
 
-# Convert the time columns to datetime format
-df_temp_met['Tid(norsk normaltid)'] = pd.to_datetime(df_temp_met['Tid(norsk normaltid)'], format='%d.%m.%Y %H:%M', errors='coerce')
-df_trykk_temp['Dato og tid'] = pd.to_datetime(df_trykk_temp['Dato og tid'], format='%d.%m.%Y %H:%M', errors='coerce')
+# Les inn data fra Sola værstasjon
+df_sola = pd.read_csv("temperatur_trykk_met_samme_rune_time_datasett.csv.txt", sep=";", skipinitialspace=True)
 
-# Convert temperatures and pressures to numeric
-df_temp_met['Lufttemperatur'] = pd.to_numeric(df_temp_met['Lufttemperatur'].str.replace(',', '.'), errors='coerce')
-df_temp_met['Lufttrykk i havnivå'] = pd.to_numeric(df_temp_met['Lufttrykk i havnivå'].str.replace(',', '.'), errors='coerce')
+# Konverterer tidspunktene i Sola data til datetime-format (DD.MM.YYYY HH:MM)
+df_sola['Tid(norsk normaltid)'] = pd.to_datetime(df_sola['Tid(norsk normaltid)'], format='%d.%m.%Y %H:%M', errors='coerce')
 
-df_trykk_temp['Temperatur (gr Celsius)'] = pd.to_numeric(df_trykk_temp['Temperatur (gr Celsius)'].str.replace(',', '.'), errors='coerce')
-df_trykk_temp['Trykk - barometer (bar)'] = pd.to_numeric(df_trykk_temp['Trykk - barometer (bar)'].str.replace(',', '.'), errors='coerce')
+# Konverterer trykk til numerisk format
+df_sola['Lufttrykk i havnivå'] = pd.to_numeric(df_sola['Lufttrykk i havnivå'].str.replace(',', '.'), errors='coerce')
 
-# Plotting the temperature and pressure data
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10), sharex=True)
+# Les inn data fra lokal værstasjon (professor Rune Wiggo Time)
+df_local = pd.read_csv("trykk_og_temperaturlogg_rune_time.csv.txt", sep=";", skipinitialspace=True)
 
-# First subplot: Temperature over time
-ax1.plot(df_trykk_temp['Dato og tid'], df_trykk_temp['Temperatur (gr Celsius)'], label='Temperatur (gr Celsius)', color='blue')
-ax1.plot(df_temp_met['Tid(norsk normaltid)'], df_temp_met['Lufttemperatur'], label='Lufttemperatur (Met)', color='green')
+# Konverterer tidspunktene i lokal data til datetime-format (MM.DD.YYYY HH:MM)
+df_local['Dato og tid'] = pd.to_datetime(df_local['Dato og tid'], format='%m.%d.%Y %H:%M', errors='coerce')
 
-ax1.set_title('Temperatur over tid')
-ax1.set_ylabel('Temperatur (°C)')
-ax1.legend()
+# Fjerner ugyldige datoer
+df_local = df_local.dropna(subset=['Dato og tid'])
 
-# Updated moving average function with proper datetime handling
-def moving_average(times, temps, n=30):
-    avg_times = []
-    avg_temps = []
-    for i in range(n, len(temps) - n):
-        if not pd.isna(times[i]):  # Ensure times are valid
-            avg_times.append(times[i])  # Keep the datetime format
-            avg_temps.append(sum(temps[i - n:i + n + 1]) / (2 * n + 1))
-    return avg_times, avg_temps
+# Legger til sekunder siden start for nøyaktig tidsberegning
+df_local['Tid siden start (sek)'] = pd.to_numeric(df_local['Tid siden start (sek)'], errors='coerce')
+df_local['Dato og tid'] = df_local['Dato og tid'] + pd.to_timedelta(df_local['Tid siden start (sek)'], unit='s')
 
-# Apply moving average for the temperature file
-times = df_trykk_temp['Dato og tid'].tolist()
-temps = df_trykk_temp['Temperatur (gr Celsius)'].tolist()
-avg_times, avg_temps = moving_average(times, temps)
+# Konverterer trykk til numerisk format
+df_local['Trykk - barometer (bar)'] = pd.to_numeric(df_local['Trykk - barometer (bar)'].str.replace(',', '.'), errors='coerce')
 
-# Plot the moving average
-ax1.plot(avg_times, avg_temps, label='Glidende gjennomsnitt (n=30)', color='orange')
+# Plotter trykkdata
+plt.figure(figsize=(10, 6))
 
-# Plot temperature drop from June 11, 2021 to June 12, 2021
-start_time = datetime(2021, 6, 11, 17, 31)
-end_time = datetime(2021, 6, 12, 3, 5)
+# Trykk fra Sola
+plt.plot(df_sola['Tid(norsk normaltid)'], df_sola['Lufttrykk i havnivå'], label='Sola Lufttrykk', color='green')
 
-temp_night_data = df_trykk_temp[(df_trykk_temp['Dato og tid'] >= start_time) & (df_trykk_temp['Dato og tid'] <= end_time)]
-ax1.plot(temp_night_data['Dato og tid'], temp_night_data['Temperatur (gr Celsius)'], label='Temperaturfall 11-12 Juni', color='purple')
+# Trykk fra lokal værstasjon
+plt.plot(df_local['Dato og tid'], df_local['Trykk - barometer (bar)'], label='Lokal Barometertrykk', color='purple')
 
-# Second subplot: Pressure over time
-ax2.plot(df_trykk_temp['Dato og tid'], df_trykk_temp['Trykk - barometer (bar)'], label='Barometertrykk (bar)', color='green')
-ax2.plot(df_temp_met['Tid(norsk normaltid)'], df_temp_met['Lufttrykk i havnivå'], label='Lufttrykk i havnivå', color='blue')
+# Legger til tittel, akseetiketter og legend
+plt.title('Trykk over tid')
+plt.xlabel('Tidspunkt')
+plt.ylabel('Trykk (hPa)')
+plt.legend()
 
-ax2.set_title('Trykk over tid')
-ax2.set_xlabel('Tidspunkt')
-ax2.set_ylabel('Trykk (hPa)')
-ax2.legend()
-
-# Adjust layout for better visibility
+# Viser trykkplottet
 plt.tight_layout()
-
-# Show the plot
 plt.show()
